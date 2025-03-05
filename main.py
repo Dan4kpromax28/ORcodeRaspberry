@@ -1,24 +1,25 @@
 import cv2
-from picamera2 import Picamera2
-import os
+from pyzbar.pyzbar import decode
+from picamera2 import Picamera2, Preview
 from libcamera import controls
+from libcamera import Transform
+
+
 picam2 = Picamera2()
-os.system("v4l2-ctl --set-ctrl wide_dynamic_range=1 -d /dev/v4l-subdev0")
-picam2.preview_configuration.main.size = (640,480)
-picam2.preview_configuration.main.format = "RGB888"
-picam2.preview_configuration.align()
-picam2.configure("preview")
-picam2.set_controls({"AfMode": controls.AfModeEnum.Continuous, "AfSpeed": controls.AfSpeedEnum.Fast})
+picam2.start_preview(Preview.QTGL)
+config = picam2.create_preview_configuration(main={"size": (640, 480)}, transform=Transform(hflip=True, vflip=True)) # tas ir domats testesanai
+picam2.configure(config)
 picam2.start()
 
-qr= cv2.QRCodeDetector()
+picam2.set_controls({"AfMode": 2, "AfTrigger": 0})
+
+barcodes = []
+correctCode = ""
+
 while True:
-    image = picam2.capture_array()
-    data, points, _ = qr.detectAndDecode(image)
-    if points is not None:
-        print("QR Code detected: ", data)
-    cv2.imshow("Camera", image)
-    if cv2.waitKey(1) == ord('q'):
-        break
-cv2.destroyAllWindows()
-picam2.stop()
+    captureRGB = picam2.capture_array("main")
+    barcodes = decode(captureRGB)
+    if barcodes: 
+        for character in barcodes:
+            correctCode = character.data.decode("utf-8")
+    print(f"Kods ir {correctCode}")
