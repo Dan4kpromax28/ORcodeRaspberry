@@ -19,4 +19,9 @@ class OledDisplay:
             with canvas(self.device) as draw:
                 draw.text((x, 20), msg, font=self.font, fill=255)
             x -= 6  
-            sleep(0.05)
+            sleep(0.05)  
+        self.clear()
+        
+    def clear(self):
+        self.device.clear()
+        self.device.show()
