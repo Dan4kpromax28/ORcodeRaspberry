@@ -4,6 +4,9 @@ from picamera2 import Picamera2, Preview
 from libcamera import controls
 from libcamera import Transform
 import time
+from oledDi import OledDisplay
+
+display = OledDisplay();
 
 picam2 = Picamera2()
 picam2.start_preview(Preview.QTGL)
@@ -26,6 +29,7 @@ while True:
         correctCode = barcodes[0].data.decode("utf-8")
         if lastCode != correctCode:
             print(f"Jaunais kods ir: {correctCode}")
+            display.showMessage(f"Jaunais kods ir: {correctCode}")
             time.sleep(delay)
             
             captureRGB = picam2.capture_array("main")
