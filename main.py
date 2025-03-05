@@ -5,8 +5,12 @@ from libcamera import controls
 from libcamera import Transform
 import time
 from oledDi import OledDisplay
+import config
+from relay import Relay
 
-display = OledDisplay();
+
+display = OledDisplay()
+firstRelay = Relay()
 
 picam2 = Picamera2()
 picam2.start_preview(Preview.QTGL)
@@ -21,6 +25,7 @@ correctCode = ""
 delay = 2.5
 delayAfter = 4
 lastCode = None
+print(f" {firstRelay.value()}")
 
 while True:
     captureRGB = picam2.capture_array("main")
@@ -36,11 +41,13 @@ while True:
             newBarcodes = decode(captureRGB)
             
             if newBarcodes and newBarcodes[0].data.decode("utf-8") == correctCode:
-                print(f"Kods: {correctCode} ir pareizs")
+                print(f"Kods: {correctCode} ir pareizs {firstRelay.value()}")
+                firstRelay.onOff()
                 time.sleep(delayAfter)
             else:
                 print(f"notika kluda")
                 
+                 
         
                     
             
