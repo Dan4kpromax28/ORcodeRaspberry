@@ -27,26 +27,34 @@ delayAfter = 4
 lastCode = None
 print(f" {firstRelay.value()}")
 
-while True:
-    captureRGB = picam2.capture_array("main")
-    barcodes = decode(captureRGB)
-    if barcodes: 
-        correctCode = barcodes[0].data.decode("utf-8")
-        if lastCode != correctCode:
-            print(f"Jaunais kods ir: {correctCode}")
-            display.showMessage(f"Jaunais kods ir: {correctCode}")
-            time.sleep(delay)
-            
-            captureRGB = picam2.capture_array("main")
-            newBarcodes = decode(captureRGB)
-            
-            if newBarcodes and newBarcodes[0].data.decode("utf-8") == correctCode:
-                print(f"Kods: {correctCode} ir pareizs {firstRelay.value()}")
-                firstRelay.onOff()
-                time.sleep(delayAfter)
-            else:
-                print(f"notika kluda")
+try:
+    while True:
+        captureRGB = picam2.capture_array("main")
+        barcodes = decode(captureRGB)
+        if barcodes: 
+            correctCode = barcodes[0].data.decode("utf-8")
+            if lastCode != correctCode:
+                print(f"Jaunais kods ir: {correctCode}")
+                display.showMessage(f"Jaunais kods ir: {correctCode}")
+                time.sleep(delay)
                 
+                captureRGB = picam2.capture_array("main")
+                newBarcodes = decode(captureRGB)
+                
+                if newBarcodes and newBarcodes[0].data.decode("utf-8") == correctCode:
+                    print(f"Kods: {correctCode} ir pareizs {firstRelay.value()}")
+                    firstRelay.onOff()
+                    time.sleep(delayAfter)
+                else:
+                    print(f"notika kluda")
+except KeyboardInterrupt:
+    display.showMessage("Programma tika apturēta")
+finally:
+    picam2.stop()
+    display.clear()
+    
+
+
                  
         
                     
