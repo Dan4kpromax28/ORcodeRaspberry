@@ -1,7 +1,5 @@
-import cv2
 from pyzbar.pyzbar import decode
 from picamera2 import Picamera2, Preview
-from libcamera import controls
 from libcamera import Transform
 import time
 from oledDi import OledDisplay
@@ -9,51 +7,60 @@ import config
 from relay import Relay
 from supabaseMod import SupabaseMod
 
-supabase = SupabaseMod()
-display = OledDisplay()
-firstRelay = Relay()
+def initialization():
+    supabase = SupabaseMod()
+    display = OledDisplay()
+    firstRelay = Relay()
+    return supabase, display, firstRelay
 
-picam2 = Picamera2()
-picam2.start_preview(Preview.QTGL)
-config = picam2.create_preview_configuration(main={"size": (640, 480)}, transform=Transform(hflip=True, vflip=True)) # tas ir domats testesanai
-picam2.configure(config)
-picam2.start()
+def cameraConfig():
+    picam2 = Picamera2()
+    picam2.start_preview(Preview.QTGL)
+    config = picam2.create_preview_configuration(main={"size": (640, 480)}, transform=Transform(hflip=True, vflip=True)) # tas ir domats testesanai
+    picam2.configure(config)
+    picam2.start()
+    picam2.set_controls({"AfMode": 2, "AfTrigger": 0})
+    return picam2
 
-picam2.set_controls({"AfMode": 2, "AfTrigger": 0})
+def decodedQr(picam2):
+    captureRGB = picam2.capture_array("main")
+    return decode(captureRGB)
+
+def checkCode(newBarcodes, correctCode, display, firstRelay):
+    if newBarcodes and newBarcodes[0].data.decode("utf-8") == correctCode and supabase.checkCodeInDatabase(correctCode):
+        display.showMessage("Laipni lūdzam")
+        firstRelay.onOff()
+        time.sleep(delayAfter)
+    else:
+        display.showMessage("Kods nav derīgs")
+
+supabase, display, firstRelay = initialization()
+picam2 = cameraConfig()
 
 barcodes = []
 correctCode = ""
-delay = 2.5
-delayAfter = 4
+delay = 1
+delayAfter = 2
 lastCode = None
-print(f" {firstRelay.value()}")
+
 
 try:
     while True:
-        captureRGB = picam2.capture_array("main")
-        barcodes = decode(captureRGB)
+        barcodes = decodedQr(picam2)
         if barcodes: 
             correctCode = barcodes[0].data.decode("utf-8")
             if lastCode != correctCode:
-                print(f"Jaunais kods ir: {correctCode}")
-                display.showMessage(f"Jaunais kods ir: {correctCode}")
                 time.sleep(delay)
-                
-                captureRGB = picam2.capture_array("main")
-                newBarcodes = decode(captureRGB)
-                
-                if newBarcodes and newBarcodes[0].data.decode("utf-8") == correctCode:
-                    print(supabase.checkCodeInDatabase(correctCode))
-                    print(f"Kods: {correctCode} ir pareizs {firstRelay.value()}")
-                    firstRelay.onOff()
-                    time.sleep(delayAfter)
-                else:
-                    print(f"notika kluda")
+                newBarcodes = decodedQr(picam2)
+                checkCode(newBarcodes, correctCode, display, firstRelay)
 except KeyboardInterrupt:
     display.showMessage("Programma tika apturēta")
 finally:
     picam2.stop()
     display.clear()
+
+
+  
     
 
 
