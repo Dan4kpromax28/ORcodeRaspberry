@@ -3,7 +3,6 @@ from picamera2 import Picamera2, Preview
 from libcamera import Transform
 import time
 from oledDi import OledDisplay
-import config
 from relay import Relay
 from supabaseMod import SupabaseMod
 
@@ -31,8 +30,12 @@ def checkCode(newBarcodes, correctCode, display, firstRelay):
         display.showMessage("Laipni lūdzam")
         firstRelay.onOff()
         time.sleep(delayAfter)
+        newBarcodes.clear()
+        barcodes.clear()
     else:
         display.showMessage("Kods nav derīgs")
+        newBarcodes.clear()
+        barcodes.clear()
 
 supabase, display, firstRelay = initialization()
 picam2 = cameraConfig()
