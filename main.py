@@ -30,12 +30,9 @@ def checkCode(newBarcodes, correctCode, display, firstRelay):
         display.showMessage("Laipni lūdzam")
         firstRelay.onOff()
         time.sleep(delayAfter)
-        newBarcodes.clear()
-        barcodes.clear()
     else:
         display.showMessage("Kods nav derīgs")
-        newBarcodes.clear()
-        barcodes.clear()
+        
 
 supabase, display, firstRelay = initialization()
 picam2 = cameraConfig()
@@ -49,13 +46,16 @@ lastCode = None
 
 try:
     while True:
+        barcodes.clear()
         barcodes = decodedQr(picam2)
         if barcodes: 
             correctCode = barcodes[0].data.decode("utf-8")
             if lastCode != correctCode:
                 time.sleep(delay)
                 newBarcodes = decodedQr(picam2)
+                print(newBarcodes,barcodes)
                 checkCode(newBarcodes, correctCode, display, firstRelay)
+                newBarcodes.clear()
 except KeyboardInterrupt:
     display.showMessage("Programma tika apturēta")
 finally:

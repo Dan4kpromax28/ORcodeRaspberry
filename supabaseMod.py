@@ -1,5 +1,5 @@
 from config import Config
-from supabase import create_client, Client
+from supabase import create_client
 from datetime import datetime as date
 
 
