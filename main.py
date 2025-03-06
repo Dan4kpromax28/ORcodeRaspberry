@@ -7,8 +7,9 @@ import time
 from oledDi import OledDisplay
 import config
 from relay import Relay
+from supabaseMod import SupabaseMod
 
-
+supabase = SupabaseMod()
 display = OledDisplay()
 firstRelay = Relay()
 
@@ -42,6 +43,7 @@ try:
                 newBarcodes = decode(captureRGB)
                 
                 if newBarcodes and newBarcodes[0].data.decode("utf-8") == correctCode:
+                    print(supabase.checkCodeInDatabase(correctCode))
                     print(f"Kods: {correctCode} ir pareizs {firstRelay.value()}")
                     firstRelay.onOff()
                     time.sleep(delayAfter)
