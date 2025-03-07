@@ -27,8 +27,8 @@ def decodedQr(picam2):
 
 def checkCode(newBarcodes, correctCode, display, firstRelay):
     if newBarcodes and newBarcodes[0].data.decode("utf-8") == correctCode and supabase.checkCodeInDatabase(correctCode):
-        display.showMessage("Laipni lūdzam")
         firstRelay.onOff()
+        display.showMessage("Laipni lūdzam")
         time.sleep(delayAfter)
     else:
         display.showMessage("Kods nav derīgs")
@@ -39,8 +39,8 @@ picam2 = cameraConfig()
 
 barcodes = []
 correctCode = ""
-delay = 1
-delayAfter = 2
+delay = 0.5
+delayAfter = 0.2
 lastCode = None
 
 
@@ -53,7 +53,6 @@ try:
             if lastCode != correctCode:
                 time.sleep(delay)
                 newBarcodes = decodedQr(picam2)
-                print(newBarcodes,barcodes)
                 checkCode(newBarcodes, correctCode, display, firstRelay)
                 newBarcodes.clear()
 except KeyboardInterrupt:

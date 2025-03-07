@@ -12,10 +12,10 @@ class OledDisplay:
 
     def showMessage(self, msg):
         x = self.device.width  
-        text_width = len(msg) * 10  
-        end_point = -text_width  
+        textWidth = len(msg) * 10  
+        endPoint = -textWidth  
 
-        while x > end_point:  
+        while x > endPoint:  
             with canvas(self.device) as draw:
                 draw.text((x, 20), msg, font=self.font, fill=255)
             x -= 6  

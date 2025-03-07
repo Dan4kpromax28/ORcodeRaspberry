@@ -8,7 +8,7 @@ class Relay:
 
     def onOff(self):
         self.on()
-        time.sleep(2)
+        time.sleep(0.5)
         self.off()
         print(f"Relay value: {self.value()}")
 
