@@ -28,9 +28,11 @@ def decodedQr(picam2):
 def checkCode(newBarcodes, correctCode, display, firstRelay):
     if newBarcodes and newBarcodes[0].data.decode("utf-8") == correctCode and supabase.checkCodeInDatabase(correctCode):
         firstRelay.onOff()
+        
         display.showMessage("Laipni lūdzam")
         time.sleep(delayAfter)
     else:
+        print(correctCode)
         display.showMessage("Kods nav derīgs")
         
 
