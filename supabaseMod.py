@@ -2,6 +2,7 @@ from config import Config
 from supabase import create_client, Client
 from datetime import datetime as date
 from datetime import time
+from oledDi import OledDisplay
 
 
 class SupabaseMod:
@@ -13,79 +14,97 @@ class SupabaseMod:
         self.keyValue = "user_string"
         self.dateStart = "start_at"
         self.dateEnd = "valid_until"
+        self.display = OledDisplay()
 
     def signInIntoSupabase(self, email, password):
         result = self.supabase.auth.sign_in_with_password({"email": email, "password":password})
 
 
     def checkCodeInDatabase(self, code):
-        result = self.supabase.table(self.tableTicket).select("*, user_subscription(*, invoice(*), subscriptions(*))").eq(self.keyValue, code).execute()
-        print(result)
-        count = int(result.data[0]["count"])
-        user = result.data[0]["user_subscription"]["client_id"]
-        #startDate = date.strptime(result.data[0]["user_subscription"]["start_date"],"%Y-%m-%d").date()
-        #endDate = date.strptime(result.data[0]["user_subscription"]["end_date"],"Y-%m-%d").date()
-        status = result.data[0]["user_subscription"]["invoice"][0]["status"]
-        restrictionStart = date.strptime(result.data[0]["user_subscription"]["subscriptions"]["restriction_start"],"%H:%M:%S").time()
-        restrictionEnd = date.strptime(result.data[0]["user_subscription"]["subscriptions"]["restriction_end"], "%H:%M:%S").time()
-        isDate = result.data[0]["user_subscription"]["subscriptions"]["is_date"]
-        isTime = result.data[0]["user_subscription"]["subscriptions"]["is_time"]
-        if status != "valid":
-            print("Status nav derigs")
-            return False
-        
-        if isDate == True and isTime == True:
-            startDate = date.strptime(result.data[0]["user_subscription"]["start_date"],"%Y-%m-%d").date()
-            if self.isDateValid(startDate) != True:
-                print("Datums nav derigs")
+        try:
+            
+            result = self.supabase.table(self.tableTicket).select("count, user_string, user_subscription(client_id, start_date, end_date, invoice(status), subscriptions(restriction_start, restriction_end, is_date, is_time))").eq(self.keyValue, code).execute()
+            if result.data == []:
+                print("Nav derigs kods")
+                self.display.showMessage("Nav derigs kods")
                 return False
-            if self.isTimeValid(restrictionStart, restrictionEnd) != True:
-                print("Laiks nav derigs")
-                return False
-        
-        if isTime == False and isDate == True:
-            startDate = date.strptime(result.data[0]["user_subscription"]["start_date"],"%Y-%m-%d").date()
-            endDate = date.strptime(result.data[0]["user_subscription"]["end_date"],"%Y-%m-%d").date()
-            if self.isDateValid(startDate, endDate) != True:
-                print("Datums nav derigs")
+            #print(result)
+            count = int(result.data[0]["count"])
+            user = result.data[0]["user_subscription"]["client_id"]
+            
+            status = result.data[0]["user_subscription"]["invoice"][0]["status"]
+            restrictionStart = date.strptime(result.data[0]["user_subscription"]["subscriptions"]["restriction_start"],"%H:%M:%S").time()
+            restrictionEnd = date.strptime(result.data[0]["user_subscription"]["subscriptions"]["restriction_end"], "%H:%M:%S").time()
+            isDate = result.data[0]["user_subscription"]["subscriptions"]["is_date"]
+            isTime = result.data[0]["user_subscription"]["subscriptions"]["is_time"]
+            if status != "valid":
+                print("Status nav derigs")
+                self.display.showMessage("Status nav derigs")
                 return False
             
-        if isTime == False and isDate == False:
-            if count <= 0:
-                print("Datums nav derigs")
-                return False
-            new_count = count - 1
-            result = self.supabase.table(self.tableTicket).update({"count": new_count}).eq("user_string", code).execute()
+            if isDate == True and isTime == True:
+                startDate = date.strptime(result.data[0]["user_subscription"]["start_date"],"%Y-%m-%d").date()
+                if self.isDateValid2(startDate) != True:
+                    print("Datums nav derigs")
+                    self.display.showMessage("Datums nav derigs")
+                    return False
+                if self.isTimeValid(restrictionStart, restrictionEnd) != True:
+                    print("Laiks nav derigs")
+                    self.display.showMessage("Laiks nav derigs")
+                    return False
             
-        self.sendCheckMark(user)
+            if isTime == False and isDate == True:
+                startDate = date.strptime(result.data[0]["user_subscription"]["start_date"],"%Y-%m-%d").date()
+                endDate = date.strptime(result.data[0]["user_subscription"]["end_date"],"%Y-%m-%d").date()
+                if self.isDateValid(startDate, endDate) != True:
+                    print("Datums nav derigs")
+                    self.display.showMessage("Datums nav derigs")
+                    return False
+                
+            if isTime == False and isDate == False:
+                if count <= 0:
+                    print("Datums nav derigs")
+                    self.display.showMessage("Datums nav derigs")
+                    return False
+                new_count = count - 1
+                result = self.supabase.table(self.tableTicket).update({"count": new_count}).eq("user_string", code).execute()
+                
+            self.sendCheckMark(user)
 
-        
-        print(user)
-        return True
+            
+            #print(user)
+            return True
+        except Exception as e:
+            print("Notika problema")
+            return False
     
     def isTimeValid(self, restrictionStart, restrictionEnds):
         #validUntil = date.fromisoformat(result[self.dateEnd].replace('Z', '+00:00'))
         #startAt = date.fromisoformat(result[self.dateStart].replace('Z', '+00:00'))
         #now = date.now()
-        now = date.now().time()
+        try:
+            now = date.now().time()
 
-        return restrictionStart <= now <= restrictionEnds
+            return restrictionStart <= now <= restrictionEnds
+        except Exception as e:
+            return False
     
     def isDateValid2(self, restrictionStart):
-        now = date.today().date()
-        print("restType", type(restrictionStart))
-        print("now" ,type(date.today()))
-        return restrictionStart <= now
+        try:
+            now = date.today().date()
+            return restrictionStart <= now
+        except Exception as e:
+            return False
     
     def isDateValid(self, startAt, validUntil):
-        print("startAt" , type(startAt))
-        print("validUntil", type(validUntil))
-        print("now" , type(date.today()))
-        now = date.today().date()
-        return startAt <= now <= validUntil
+        try:
+            now = date.today().date()
+            return startAt <= now <= validUntil
+        except Exception as e:
+            return False
     
     def sendCheckMark(self, id):
         result = self.supabase.table("time_stamps").insert({"client_id": id}).execute()
-        print(result)
+        #print(result)
     
     

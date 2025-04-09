@@ -10,7 +10,7 @@ class Relay:
         self.on()
         time.sleep(0.5)
         self.off()
-        print(f"Relay value: {self.value()}")
+        #print(f"Relay value: {self.value()}")
 
     def off(self):
         self.relay.off()
