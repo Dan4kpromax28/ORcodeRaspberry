@@ -23,13 +23,13 @@ class SupabaseMod:
     def checkCodeInDatabase(self, code):
         try:
             
-            result = self.supabase.table(self.tableTicket).select("count, user_string, user_subscription(client_id, start_date, end_date, invoice(status), subscriptions(restriction_start, restriction_end, is_date, is_time))").eq(self.keyValue, code).execute()
+            result = self.supabase.table(self.tableTicket).select("id, count, user_string, user_subscription(client_id, start_date, end_date, invoice(status), subscriptions(restriction_start, restriction_end, is_date, is_time))").eq(self.keyValue, code).execute()
             if result.data == []:
                 print("Nav derigs kods")
                 self.display.showMessage("Nav derigs kods")
                 return False
-            #print(result)
-            count = int(result.data[0]["count"])
+            
+            ticketId = result.data[0]["id"]
             user = result.data[0]["user_subscription"]["client_id"]
             
             status = result.data[0]["user_subscription"]["invoice"][0]["status"]
@@ -37,6 +37,7 @@ class SupabaseMod:
             restrictionEnd = date.strptime(result.data[0]["user_subscription"]["subscriptions"]["restriction_end"], "%H:%M:%S").time()
             isDate = result.data[0]["user_subscription"]["subscriptions"]["is_date"]
             isTime = result.data[0]["user_subscription"]["subscriptions"]["is_time"]
+           
             if status != "valid":
                 print("Status nav derigs")
                 self.display.showMessage("Status nav derigs")
@@ -60,31 +61,18 @@ class SupabaseMod:
                     print("Datums nav derigs")
                     self.display.showMessage("Datums nav derigs")
                     return False
-                
-            if isTime == False and isDate == False:
-                if count <= 0:
-                    print("Datums nav derigs")
-                    self.display.showMessage("Datums nav derigs")
-                    return False
-                new_count = count - 1
-                result = self.supabase.table(self.tableTicket).update({"count": new_count}).eq("user_string", code).execute()
+            
                 
             self.sendCheckMark(user)
 
-            
-            #print(user)
             return True
         except Exception as e:
             print("Notika problema")
             return False
     
     def isTimeValid(self, restrictionStart, restrictionEnds):
-        #validUntil = date.fromisoformat(result[self.dateEnd].replace('Z', '+00:00'))
-        #startAt = date.fromisoformat(result[self.dateStart].replace('Z', '+00:00'))
-        #now = date.now()
         try:
             now = date.now().time()
-
             return restrictionStart <= now <= restrictionEnds
         except Exception as e:
             return False
@@ -104,7 +92,7 @@ class SupabaseMod:
             return False
     
     def sendCheckMark(self, id):
-        result = self.supabase.table("time_stamps").insert({"client_id": id}).execute()
-        #print(result)
+        result = self.supabase.table("time_stamps").insert({"ticket_id": id}).execute()
+
     
     
