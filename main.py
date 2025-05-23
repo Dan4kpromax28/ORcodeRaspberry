@@ -50,7 +50,9 @@ try:
     while True:
         barcodes.clear()
         barcodes = decodedQr(picam2)
+        
         if barcodes: 
+            print('Kods')
             correctCode = barcodes[0].data.decode("utf-8")
             if lastCode != correctCode:
                 time.sleep(delay)
