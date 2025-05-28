@@ -58,6 +58,10 @@ class SupabaseMod:
                 self.display.showMessage("Status nav derigs")
                 return False
             print("derigs")
+            if self.isTimeValid(restrictionStart, restrictionEnd) != True:
+                print("Laiks nav derigs")
+                return False
+            print('time ok')
             if isDate == True and isTime == True:
                 startDate = date.strptime(result.data[0]["user_subscription"]["start_date"],"%Y-%m-%d").date()
                 if self.isDateValid2(startDate) != True:

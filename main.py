@@ -18,7 +18,7 @@ def cameraConfig():
     config = picam2.create_preview_configuration(main={"size": (640, 480)}, transform=Transform(hflip=True, vflip=True)) # tas ir domats testesanai
     picam2.configure(config)
     picam2.start()
-    picam2.set_controls({"AfMode": 2, "AfTrigger": 0})
+    picam2.set_controls({"AfMode": 2, "AfTrigger": 0})#picam2.set_controls({"AfMode": 0, "LensPosition": 3.5})fiksets fokuss
     return picam2
 
 def decodedQr(picam2):
