@@ -30,57 +30,47 @@ class SupabaseMod:
             
             
             result = self.supabase.table(self.tableTicket).select("id, user_string, user_subscription(client_id, start_date, end_date, invoice(status), subscriptions(restriction_start, restriction_end, is_date, is_time))").eq(self.keyValue, code).execute()
-            print(result)
             if result.data == []:
-                print("Nav derigs kods")
                 self.display.showMessage("Nav derigs kods")
                 return False
             
             ticketId = result.data[0]["id"]
             user = result.data[0]["user_subscription"]["client_id"]
-            print(ticketId)
-            print(user)
+            
             
             status = result.data[0]["user_subscription"]["invoice"][0]["status"]
             
             restrictionStart = date.strptime(result.data[0]["user_subscription"]["subscriptions"]["restriction_start"],"%H:%M:%S").time()
-            print(restrictionStart)
+            
             restrictionEnd = date.strptime(result.data[0]["user_subscription"]["subscriptions"]["restriction_end"], "%H:%M:%S").time()
-            print(restrictionEnd)
+            
             isDate = result.data[0]["user_subscription"]["subscriptions"]["is_date"]
-            print(isDate)
+           
             isTime = result.data[0]["user_subscription"]["subscriptions"]["is_time"]
-            print(isTime)
-            print(status)
            
             if status != "valid":
-                print("Status nav derigs")
+                
                 self.display.showMessage("Status nav derigs")
                 return False
-            print("derigs")
+            
             if self.isTimeValid(restrictionStart, restrictionEnd) != True:
-                print("Laiks nav derigs")
+                self.display.showMessage("Laiks nav derigs")
+                
                 return False
-            print('time ok')
             if isDate == True and isTime == True:
                 startDate = date.strptime(result.data[0]["user_subscription"]["start_date"],"%Y-%m-%d").date()
                 if self.isDateValid2(startDate) != True:
-                    print("Datums nav derigs")
                     self.display.showMessage("Datums nav derigs")
                     return False
                 if self.isTimeValid(restrictionStart, restrictionEnd) != True:
-                    print("Laiks nav derigs")
                     self.display.showMessage("Laiks nav derigs")
                     return False
-            print('ok')
             if isTime == False and isDate == True:
                 startDate = date.strptime(result.data[0]["user_subscription"]["start_date"],"%Y-%m-%d").date()
                 endDate = date.strptime(result.data[0]["user_subscription"]["end_date"],"%Y-%m-%d").date()
                 if self.isDateValid(startDate, endDate) != True:
-                    print("Datums nav derigs")
                     self.display.showMessage("Datums nav derigs")
                     return False
-            print('good')
                 
             self.sendCheckMark(ticketId)
 
